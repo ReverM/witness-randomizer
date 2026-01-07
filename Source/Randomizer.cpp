@@ -189,6 +189,7 @@ void Randomizer::SwapPanels(int panel1, int panel2, int flags) {
 		offsets[NUM_COLORED_REGIONS] = sizeof(int);
 		offsets[COLORED_REGIONS] = sizeof(void*);
 	}
+
 	if (flags & SWAP::PATHS) {
 		offsets[AUDIO_PREFIX] = sizeof(void*);
 		offsets[PATH_WIDTH_SCALE] = sizeof(float);
@@ -294,11 +295,6 @@ void Randomizer::ShufflePanels(bool hard) {
 		Randomize(squarePanels, SWAP::PATHS | SWAP::COLORS);
 	} else {
 		std::vector<int> panelsToRandom = copyWithoutElements(squarePanels, squarePanelsExpertBanned);
-		std::vector<int> firstPass = copyWithoutElements(panelsToRandom, arrowPanels);
-		std::vector<int> secondPass = copyWithoutElements(panelsToRandom, glassPanels);
-
-		Randomize(firstPass, SWAP::PATHS | SWAP::COLORS);
-		Randomize(secondPass, SWAP::PATHS | SWAP::COLORS);
 	}
 	Randomize(desertPanelsWide, SWAP::PATHS);
 	Randomize(mountainMultipanel, SWAP::PATHS | SWAP::COLORS);

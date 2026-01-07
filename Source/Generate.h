@@ -24,7 +24,6 @@ public:
 		_parity = -1;
 		colorblind = false;
 		_seed = Random::rand();
-		arrowColor = backgroundColor = successColor = { 0, 0, 0, 0 };
 		resetConfig();
 	}
 	enum Config { //See configinfo.txt for explanations of config flags.
@@ -79,7 +78,6 @@ public:
 	std::set<Point> openPos; //Custom set of points that can have symbols placed on
 	std::set<Point> blockPos; //Point that must be left open
 	std::set<Point> customPath; 
-	Color arrowColor, backgroundColor, successColor; //For the arrow puzzles
 
 private:
 
