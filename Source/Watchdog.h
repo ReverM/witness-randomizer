@@ -59,7 +59,9 @@ public:
 	bool complete;
 	int style;
 	int exitPos, exitPosSym, exitPoint;
-	std::vector<struct Point> DIRECTIONS;
+private:
+	Panel _panel;
+	uintptr_t _sequenceArray = 0;
 };
 
 class BridgeWatchdog : public Watchdog {
