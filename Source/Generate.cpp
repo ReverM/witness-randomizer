@@ -1562,7 +1562,6 @@ bool Generate::placeTriangles(int color, int amount, int targetCount)
 }
 
 //Place the given amount of arrows with the given color. targetCount is how many ticks on the arrows, or 0 for random
-//The color won't actually be reflected, ArrowRecolor must be used instead
 bool Generate::placeArrows(int color, int amount, int targetCount) {
 	std::set<Point> open = openpos;
 	while (amount > 0) {
