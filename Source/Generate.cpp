@@ -1569,8 +1569,6 @@ bool Generate::placeArrows(int color, int amount, int targetCount) {
 			return false;
 		Point pos = pickRandom(open);
 		open.erase(pos);
-		if (pos.x == panel.width / 2 || panel.isCylinder && pos.x == panel.width / 2 - 1)
-			continue; //Because of a glitch where arrows in the center column won't draw right
 		int fails = 0;
 		while (fails++ < 20) { //Keep picking random directions until one works
 			int choice = (parity == -1 ? rand(8) : rand(4));
@@ -1586,6 +1584,31 @@ bool Generate::placeArrows(int color, int amount, int targetCount) {
 			amount--;
 			break;
 		}
+	}
+	return true;
+}
+
+//Place the given amount of cave clues with the given color
+bool Generate::placeCaveClues(int color, int amount) {
+	std::set<Point> open = openpos;
+	while (amount > 0) {
+		if (open.size() == 0)
+			return false;
+		Point pos = pickRandom(open);
+		open.erase(pos);
+		int count = 1;
+		for (Point dir : Panel::DIRECTIONS) {
+			Point temp = pos;
+			while(get(temp + dir + dir)!=OFF_GRID && get(temp + dir)!=PATH) {
+				count++;
+				temp = temp + dir + dir;
+			}
+		}
+		if (count > 9)
+			continue; //Maximum cave clue is 9
+		// This is where the symbol is set on the grid
+		openpos.erase(pos);
+		amount--;
 	}
 	return true;
 }

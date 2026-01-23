@@ -125,6 +125,7 @@ private:
 	bool checkStarZigzag(Panel& panel);
 	bool placeTriangles(int color, int amount, int targetCount);
 	bool placeArrows(int color, int amount, int targetCount);
+	bool placeCaveClues(int color, int amount);
 	bool placeErasers(const std::vector<int>& colors, const std::vector<int>& eraseSymbols);
 
 	bool combineShapes(std::vector<Shape>& shapes);

@@ -167,6 +167,20 @@ bool SymbolsWatchdog::checkArrow(int x, int y) {
 	return count == targetCount;
 }
 
+bool SymbolsWatchdog::checkCave(int x, int y) {
+	int symbol = get(x, y);
+	int targetCount = 0;
+	int count = 1;
+	for (Point dir : Panel::DIRECTIONS) {
+		Point temp = { x, y };
+		while (get(temp.x + dir.x + dir.x, temp.y + dir.y + dir.y) != OFF_GRID && get(temp.x + dir.x, temp.y + dir.y) != PATH) {
+			count++;
+			temp = temp + dir + dir;
+		}
+	}
+	return count = targetCount;
+}
+
 //Keep Watchdog - Keep the big panel off until all panels are solved
 void KeepWatchdog::action() {
 	if (ReadPanelData<int>(KEEP_PRESSURE_2, SOLVED)) {

@@ -50,6 +50,7 @@ public:
 
 	bool checkSymbol(int x, int y);
 	bool checkArrow(int x, int y);
+	bool checkCave(int x, int y);
 
 	PanelID id;
 	std::vector<SolutionPoint> traced;
