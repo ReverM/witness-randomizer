@@ -1931,7 +1931,8 @@ bool Generate::placeFlowers(int color, int amount) {
 							open.erase(p);
 						}
 						openpos.erase(pos2);
-						break;
+						if (amount != 1)
+							break;
 					}
 				}
 				else {
@@ -1951,7 +1952,8 @@ bool Generate::placeFlowers(int color, int amount) {
 							open.erase(p);
 						}
 						openpos.erase(pos2);
-						break;
+						if (amount != 1)
+							break;
 					}
 				}
 			}
