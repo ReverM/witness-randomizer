@@ -116,4 +116,5 @@ private:
 	static void AddAntiTriangles(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>& data);
 	static void AddCaves(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>& data);
 	static void AddMines(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>& data);
+	static void AddFlower(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>& data);
 };

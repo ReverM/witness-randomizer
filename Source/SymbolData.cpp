@@ -201,11 +201,13 @@ std::array<std::vector<SymbolData::Shape>, SymbolID::NUM_SYMBOLS> SymbolData::Ge
 
 	std::array<std::vector<Shape>, NUM_SYMBOLS> data;
 	data[BigSquare] = { Shape{ {-1.0, -1.0}, {-1.0, 1.0}, {1.0, 1.0}, {1.0, -1.0} } };
+	data[FLOWER] = { Shape{ {-1.0, -1.0}, {-1.0, 1.0}, {1.0, 1.0}, {1.0, -1.0} } };
 
 	AddArrows(data);
 	AddAntiTriangles(data);
 	AddCaves(data);
 	AddMines(data);
+	//AddFlower(data);
 
 	return data;
 }
