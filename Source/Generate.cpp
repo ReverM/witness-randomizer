@@ -535,6 +535,7 @@ bool Generate::generate(PanelID id, PuzzleSymbols symbols) {
 bool Generate::placeSymbols(PuzzleSymbols & symbols) {
 	std::vector<int> eraseSymbols;
 	std::vector<int> eraserColors;
+	std::vector<int> starDiff; //For symbols that have region color constraints so we place stars earlier
 	//If erasers are present, choose symbols to be erased and remove them pre-emptively
 	for (std::pair<int, int> s : symbols[Eraser]) {
 		for (int i = 0; i < s.second; i++) {
@@ -587,15 +588,20 @@ bool Generate::placeSymbols(PuzzleSymbols & symbols) {
 		if (!placeMinesweeperClues(s.first & 0xf, s.second, s.first >> 20)) return false;
 	}
 	for (const std::pair<int, int>& s : symbols[Flower]) {
-		if (symbols.style == HAS_STARS) {
-			// Check how many stars of the same color are planned to be placed
-			// Randomly select a number between 0 and the number of stars of the same color (put the number in array star-diff)
+		int tempStarDiff = 0;
+		if (symbols.style == HAS_STARS) {	
+			for (const std::pair<int, int>& t : symbols[Star]) {
+				if ((s.first & 0xf) == (t.first & 0xf)) { //Get how many stars of the same colors are planned to be placed
+					tempStarDiff = rand(0, t.second); //Take off some stars to be placed as pair with the flowers
+				}
+			}
 		}
-		// Place the amount of flower as needed minus previously chosen number
-		// Place as many as the previously chosen number of pairs of stars + flower pairs
+		if (!placeFlowers(s.first & 0xf, s.second - tempStarDiff)) return false;
+		if (!placeFlowerStarPairs(s.first & 0xf, tempStarDiff)) return false;
+		starDiff[s.first & 0xf] = tempStarDiff;
 	}
 	for (const std::pair<int, int>& s : symbols[Star]) {
-		if (!placeStars(s.first & 0xf, s.second)) return false; // Take off the amount of pairs previously chosen by the flowers
+		if (!placeStars(s.first & 0xf, s.second - starDiff[s.first & 0xf])) return false; 
 	}
 	if (symbols.style == HAS_STARS && hasConfig(TreehouseLayout) && !checkStarZigzag(panel)) {
 		return false;
@@ -1883,9 +1889,12 @@ bool Generate::placeFlowers(int color, int amount) {
 			set(pos, Flower | color);
 			open.erase(pos);
 			openpos.erase(pos);
-			std::set<Point> openSub = row;
-			openSub.insert(col.begin(), col.end());
-			openSub.erase(pos);
+			std::set<Point> crossSub = row;
+			crossSub.insert(col.begin(), col.end());
+			std::set<Point> openSub;
+			for (Point p : crossSub) {
+				if (open.erase(p)) openSub.insert(p);
+			}
 			while (openSub.size() > 0) {
 				Point pos2 = pickRandom(openSub);
 				openSub.erase(pos2);
@@ -1900,7 +1909,7 @@ bool Generate::placeFlowers(int color, int amount) {
 						openSub.erase(pos2);
 					}
 					else {
-						set(pos2, Flower | color);
+						set(pos2, SymbolData::GetValFromSymbolID(FLOWER) | color);
 						open.erase(pos2);
 						openpos.erase(pos2);
 						continue;
@@ -1917,7 +1926,7 @@ bool Generate::placeFlowers(int color, int amount) {
 						openSub.erase(pos2);
 					}
 					else {
-						set(pos2, Flower | color);
+						set(pos2, SymbolData::GetValFromSymbolID(FLOWER) | color);
 						open.erase(pos2);
 						openpos.erase(pos2);
 						continue;
@@ -1927,4 +1936,37 @@ bool Generate::placeFlowers(int color, int amount) {
 		}
 	}
 	return true;
+}
+
+bool Generate::placeFlowerStarPairs(int color, int amount) {
+	std::set<Point> open = openpos;
+	while (amount > 0) {
+		if (open.size() == 0)
+			return false;
+		Point pos1 = pickRandom(open);
+		open.erase(pos1);
+		std::set<Point> region = panel.getRegion(pos1);
+		if (panel.countColor(region, color) > 0) 
+			continue;
+		std::set<Point> openSub;
+		for (Point p : region) {
+			if (open.erase(p) && (p.x == pos1.x || p.y)) openSub.insert(p);
+		}
+		if (openSub.size() == 0)
+			continue;
+		Point pos2 = pickRandom(openSub); 
+		open.erase(pos2);
+		openpos.erase(pos1);
+		openpos.erase(pos2);
+		int symbolOrder = rand(0, 1);
+		if (symbolOrder) {
+			set(pos1, Star | color);
+			set(pos2, SymbolData::GetValFromSymbolID(FLOWER) | color);
+		}
+		else {
+			set(pos2, Star | color);
+			set(pos1, SymbolData::GetValFromSymbolID(FLOWER) | color);
+		}
+		amount--;
+	}
 }

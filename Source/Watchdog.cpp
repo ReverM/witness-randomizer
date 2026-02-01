@@ -156,6 +156,9 @@ bool SymbolsWatchdog::checkSymbol(int x, int y) {
 	else if (type == Minesweeper) {
 		if (!checkMinesweeper(x, y)) return false;
 	}
+	else if (type == Flower) {
+		if (!checkFlower(x, y)) return false;
+	}
 	return true;
 }
 
@@ -196,6 +199,20 @@ bool SymbolsWatchdog::checkMinesweeper(int x, int y) {
 			count++;
 	}
 	return count == targetCount;
+}
+
+bool SymbolsWatchdog::checkFlower(int x, int y) {
+	int symbol = getCustomSymbol(x, y);
+	std::set<Point> region = panel.getRegion({ x, y });
+	std::set<Point> col, row;
+	for (Point p : region) {
+		if (p.x == x)
+			row.insert(p);
+		if (p.y == y)
+			col.insert(p);
+	}
+	int color = symbol & (symbol & 0xf);
+	return (panel.countColor(col, color) > 1) != (panel.countColor(row, color) > 1);
 }
 
 //Keep Watchdog - Keep the big panel off until all panels are solved
