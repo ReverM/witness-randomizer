@@ -535,7 +535,8 @@ bool Generate::generate(PanelID id, PuzzleSymbols symbols) {
 bool Generate::placeSymbols(PuzzleSymbols & symbols) {
 	std::vector<int> eraseSymbols;
 	std::vector<int> eraserColors;
-	std::vector<int> starDiff; //For symbols that have region color constraints so we place stars earlier
+	std::array<int, Invisible> starDiff; //For symbols that have region color constraints so we place stars earlier
+	starDiff.fill(0);
 	//If erasers are present, choose symbols to be erased and remove them pre-emptively
 	for (std::pair<int, int> s : symbols[Eraser]) {
 		for (int i = 0; i < s.second; i++) {
@@ -1876,17 +1877,32 @@ bool Generate::placeFlowers(int color, int amount) {
 		}
 		int colCount = panel.countColor(col, color);
 		int rowCount = panel.countColor(row, color);
-		if (colCount > 0 && rowCount > 0) {
+		if ((colCount > 0) && (rowCount > 0)) {
 			open.erase(pos); // Impossible to place a flower in this location
 			continue; 
 		}
-		if (colCount > 0 != rowCount > 0) {
-			set(pos, Flower | color);
-			open.erase(pos);
+		if ((colCount > 0) != (rowCount > 0)) {
+			set(pos, SymbolData::GetValFromSymbolID(FLOWER) | color);
+			amount--;
+			if (colCount > 0) {
+				for (Point p : row) {
+					open.erase(p);
+				}
+			}
+			else {
+				for (Point p : col) {
+					open.erase(p);
+				}
+			}
 			openpos.erase(pos);
 		}
-		if (colCount == 0 && rowCount == 0 && amount > 1) {
-			set(pos, Flower | color);
+		if (colCount == 0 && rowCount == 0) {
+			if (amount <= 1) {
+				open.erase(pos);
+				continue;
+			}
+			set(pos, SymbolData::GetValFromSymbolID(FLOWER) | color);
+			amount--;
 			open.erase(pos);
 			openpos.erase(pos);
 			std::set<Point> crossSub = row;
@@ -1910,9 +1926,12 @@ bool Generate::placeFlowers(int color, int amount) {
 					}
 					else {
 						set(pos2, SymbolData::GetValFromSymbolID(FLOWER) | color);
-						open.erase(pos2);
+						amount--;
+						for (Point p : subRow) {
+							open.erase(p);
+						}
 						openpos.erase(pos2);
-						continue;
+						break;
 					}
 				}
 				else {
@@ -1927,12 +1946,17 @@ bool Generate::placeFlowers(int color, int amount) {
 					}
 					else {
 						set(pos2, SymbolData::GetValFromSymbolID(FLOWER) | color);
-						open.erase(pos2);
+						amount--;
+						for (Point p : subCol) {
+							open.erase(p);
+						}
 						openpos.erase(pos2);
-						continue;
+						break;
 					}
 				}
 			}
+			if (openSub.size() == 0)
+				return false;
 		}
 	}
 	return true;
@@ -1950,7 +1974,7 @@ bool Generate::placeFlowerStarPairs(int color, int amount) {
 			continue;
 		std::set<Point> openSub;
 		for (Point p : region) {
-			if (open.erase(p) && (p.x == pos1.x || p.y)) openSub.insert(p);
+			if (open.erase(p) && (p.x == pos1.x || p.y == pos1.y)) openSub.insert(p);
 		}
 		if (openSub.size() == 0)
 			continue;
@@ -1969,4 +1993,5 @@ bool Generate::placeFlowerStarPairs(int color, int amount) {
 		}
 		amount--;
 	}
+	return true;
 }
