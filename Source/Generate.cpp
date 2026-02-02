@@ -592,8 +592,8 @@ bool Generate::placeSymbols(PuzzleSymbols & symbols) {
 		int tempStarDiff = 0;
 		if (symbols.style == HAS_STARS) {	
 			for (const std::pair<int, int>& t : symbols[Star]) {
-				if ((s.first & 0xf) == (t.first & 0xf)) { //Get how many stars of the same colors are planned to be placed
-					tempStarDiff = rand(0, t.second); //Take off some stars to be placed as pair with the flowers
+				if ((s.first & 0xf) == (t.first & 0xf)) { //Get how many stars of the same color are planned to be placed
+					tempStarDiff = rand(0, t.second); //Take off some stars to be placed as pairs with the flowers
 				}
 			}
 		}
