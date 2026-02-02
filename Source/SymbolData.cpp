@@ -591,6 +591,6 @@ void SymbolData::AddFlower(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>
 
 	std::vector<Shape> petal = Combine(petalPart1, petalPart2, petalPart3, petalPart4); //This symbol is too complex to go through the normal triangulation, we must do some of the work
 
-	double scale = 0.33;
+	double scale = 0.21;
 	data[FLOWER] = { RotateClockwise(Scale(Combine(petal, RotateClockwise(petal, 60), RotateClockwise(petal, 120), RotateClockwise(petal, 180), RotateClockwise(petal, 240), RotateClockwise(petal, 300)),scale),30) };
 }
