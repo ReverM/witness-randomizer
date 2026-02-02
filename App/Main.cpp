@@ -272,6 +272,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (wcscmp(text, L"Anti-Triangle") == 0) symbol = SymbolData::GetValFromSymbolID(ANTITRIANGLE1 + variant - 1);
 			if (wcscmp(text, L"Cave") == 0) symbol = SymbolData::GetValFromSymbolID(CAVE1 + variant - 1);
 			if (wcscmp(text, L"Minesweeper") == 0) symbol = SymbolData::GetValFromSymbolID(MINESWEEPER0 + variant);
+			if (wcscmp(text, L"Flower") == 0) symbol = SymbolData::GetValFromSymbolID(FLOWER);
 			if (wcscmp(text, L"Dot (Intersection)") == 0) symbol = Dot_Intersection;
 			if (wcscmp(text, L"Dot (Row)") == 0) symbol = Dot_Row;
 			if (wcscmp(text, L"Dot (Column)") == 0) symbol = Dot_Column;
@@ -308,6 +309,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			panel.resize(width - (panel.isCylinder ? 1 : 0), height);
 			if (symbol == Poly)
 				panel.setShape(x, y, currentShape, IsDlgButtonChecked(hwnd, IDC_ROTATED), IsDlgButtonChecked(hwnd, IDC_NEGATIVE), color);
+			else if (symbol == Start)
+				panel.setFlag(x, y, STARTPOINT);
+			else if (symbol == Exit)
+				panel.setFlag(x, y, ENDPOINT);
 			else panel.setSymbol(x, y, static_cast<Symbol>(symbol), color);
 			panel.write(panelID);
 			break;
@@ -329,9 +334,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (panelID == -1) break;
 			panel.read(panelID);
 			panel.resize(width - (panel.isCylinder ? 1 : 0), height);
-			if (wcscmp(text, L"Dot (Intersection)") == 0 ||
-				wcscmp(text, L"Start") == 0 || wcscmp(text, L"Exit") == 0)
+			if (wcscmp(text, L"Dot (Intersection)") == 0)
 				panel.setGridSymbol(x * 2, y * 2, None, NoColor);
+			else if (wcscmp(text, L"Start") == 0) {
+				panel.startpoints.erase(std::remove(panel.startpoints.begin(), panel.startpoints.end(), Point{ x, y }), panel.startpoints.end());
+				panel.clearFlag(x, y, STARTPOINT);
+			}
+			else if (wcscmp(text, L"Exit") == 0) 
+				panel.clearFlag(x, y, ENDPOINT);
 			else if (wcscmp(text, L"Gap (Column)") == 0 ||
 				wcscmp(text, L"Dot (Column)") == 0)
 				panel.setGridSymbol(x * 2, y * 2 + 1, None, NoColor);
@@ -528,14 +538,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			160, 390, 150, 300, hwnd, NULL, hInstance, NULL);
 
 		const int NUM_ELEMS = 17;
-		TCHAR elems[NUM_ELEMS][24] =
+		TCHAR elems[NUM_ELEMS][25] =
 		{
 			TEXT("Stone"), TEXT("Star"), TEXT("Eraser"), TEXT("Shape"), TEXT("Triangle"),
-			TEXT("Arrow"), TEXT("Anti-Triangle"), TEXT("Cave"), TEXT("Minesweeper"),
+			TEXT("Arrow"), TEXT("Anti-Triangle"), TEXT("Cave"), TEXT("Minesweeper"), TEXT("Flower"),
 			TEXT("Gap (Row)"), TEXT("Gap (Column)"), TEXT("Dot (Intersection)"), TEXT("Dot (Row)"), TEXT("Dot (Column)"),
 			TEXT("Start"), TEXT("Exit"),
 		};
-		TCHAR option[24];
+		TCHAR option[25];
 		memset(&option, 0, sizeof(option));
 		for (int i = 0; i < NUM_ELEMS; i++)
 		{
