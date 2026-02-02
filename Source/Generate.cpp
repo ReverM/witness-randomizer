@@ -535,6 +535,8 @@ bool Generate::generate(PanelID id, PuzzleSymbols symbols) {
 bool Generate::placeSymbols(PuzzleSymbols & symbols) {
 	std::vector<int> eraseSymbols;
 	std::vector<int> eraserColors;
+	std::array<int, Invisible> starDiff; //For symbols that have region color constraints so we place stars earlier
+	starDiff.fill(0);
 	//If erasers are present, choose symbols to be erased and remove them pre-emptively
 	for (std::pair<int, int> s : symbols[Eraser]) {
 		for (int i = 0; i < s.second; i++) {
@@ -586,8 +588,21 @@ bool Generate::placeSymbols(PuzzleSymbols & symbols) {
 	for (const std::pair<int, int>& s : symbols[Minesweeper0]) {
 		if (!placeMinesweeperClues(s.first & 0xf, s.second, s.first >> 20)) return false;
 	}
+	for (const std::pair<int, int>& s : symbols[Flower]) {
+		int tempStarDiff = 0;
+		if (symbols.style == HAS_STARS) {	
+			for (const std::pair<int, int>& t : symbols[Star]) {
+				if ((s.first & 0xf) == (t.first & 0xf)) { //Get how many stars of the same color are planned to be placed
+					tempStarDiff = rand(0, t.second); //Take off some stars to be placed as pairs with the flowers
+				}
+			}
+		}
+		if (!placeFlowers(s.first & 0xf, s.second - tempStarDiff)) return false;
+		if (!placeFlowerStarPairs(s.first & 0xf, tempStarDiff)) return false;
+		starDiff[s.first & 0xf] = tempStarDiff;
+	}
 	for (const std::pair<int, int>& s : symbols[Star]) {
-		if (!placeStars(s.first & 0xf, s.second)) return false;
+		if (!placeStars(s.first & 0xf, s.second - starDiff[s.first & 0xf])) return false; 
 	}
 	if (symbols.style == HAS_STARS && hasConfig(TreehouseLayout) && !checkStarZigzag(panel)) {
 		return false;
@@ -1841,6 +1856,143 @@ bool Generate::placeMinesweeperClues(int color, int amount, int targetCount) {
 		if (targetCount && count != targetCount && targetCount != 9) continue;
 		set(pos, SymbolData::GetValFromSymbolID(MINESWEEPER0 + count) | color);
 		openpos.erase(pos);
+		amount--;
+	}
+	return true;
+}
+
+bool Generate::placeFlowers(int color, int amount) {
+	std::set<Point> open = openpos;
+	while (amount > 0) {
+		if (open.size() == 0)
+			return false;
+		Point pos = pickRandom(open);
+		std::set<Point> region = panel.getRegion(pos);
+		std::set<Point> col, row;
+		for (Point p : region) {
+			if (p.x == pos.x)
+				row.insert(p);
+			if (p.y == pos.y)
+				col.insert(p);
+		}
+		int colCount = panel.countColor(col, color);
+		int rowCount = panel.countColor(row, color);
+		if ((colCount > 0) && (rowCount > 0)) {
+			open.erase(pos); // Impossible to place a flower in this location
+			continue; 
+		}
+		if ((colCount > 0) != (rowCount > 0)) {
+			set(pos, SymbolData::GetValFromSymbolID(FLOWER) | color);
+			amount--;
+			if (colCount > 0) {
+				for (Point p : row) {
+					open.erase(p);
+				}
+			}
+			else {
+				for (Point p : col) {
+					open.erase(p);
+				}
+			}
+			openpos.erase(pos);
+		}
+		if (colCount == 0 && rowCount == 0) {
+			if (amount <= 1) {
+				open.erase(pos);
+				continue;
+			}
+			set(pos, SymbolData::GetValFromSymbolID(FLOWER) | color);
+			amount--;
+			open.erase(pos);
+			openpos.erase(pos);
+			std::set<Point> crossSub = row;
+			crossSub.insert(col.begin(), col.end());
+			std::set<Point> openSub;
+			for (Point p : crossSub) {
+				if (open.erase(p)) openSub.insert(p);
+			}
+			while (openSub.size() > 0) {
+				Point pos2 = pickRandom(openSub);
+				openSub.erase(pos2);
+				if (col.find(pos2) != col.end()) {
+					std::set<Point> subRow;
+					for (Point p : region) {
+						if (p.x == pos2.x)
+							subRow.insert(p);
+					}
+					if (panel.countColor(subRow, color) > 0) {
+						open.erase(pos2);
+						openSub.erase(pos2);
+					}
+					else {
+						set(pos2, SymbolData::GetValFromSymbolID(FLOWER) | color);
+						amount--;
+						for (Point p : subRow) {
+							open.erase(p);
+						}
+						openpos.erase(pos2);
+						if (amount != 1)
+							break;
+					}
+				}
+				else {
+					std::set<Point> subCol;
+					for (Point p : region) {
+						if (p.y == pos2.y)
+							subCol.insert(p);
+					}
+					if (panel.countColor(subCol, color) > 0) {
+						open.erase(pos2);
+						openSub.erase(pos2);
+					}
+					else {
+						set(pos2, SymbolData::GetValFromSymbolID(FLOWER) | color);
+						amount--;
+						for (Point p : subCol) {
+							open.erase(p);
+						}
+						openpos.erase(pos2);
+						if (amount != 1)
+							break;
+					}
+				}
+			}
+			if (openSub.size() == 0)
+				return false;
+		}
+	}
+	return true;
+}
+
+bool Generate::placeFlowerStarPairs(int color, int amount) {
+	std::set<Point> open = openpos;
+	while (amount > 0) {
+		if (open.size() == 0)
+			return false;
+		Point pos1 = pickRandom(open);
+		open.erase(pos1);
+		std::set<Point> region = panel.getRegion(pos1);
+		if (panel.countColor(region, color) > 0) 
+			continue;
+		std::set<Point> openSub;
+		for (Point p : region) {
+			if (open.erase(p) && (p.x == pos1.x || p.y == pos1.y)) openSub.insert(p);
+		}
+		if (openSub.size() == 0)
+			continue;
+		Point pos2 = pickRandom(openSub); 
+		open.erase(pos2);
+		openpos.erase(pos1);
+		openpos.erase(pos2);
+		int symbolOrder = rand(0, 1);
+		if (symbolOrder) {
+			set(pos1, Star | color);
+			set(pos2, SymbolData::GetValFromSymbolID(FLOWER) | color);
+		}
+		else {
+			set(pos2, Star | color);
+			set(pos1, SymbolData::GetValFromSymbolID(FLOWER) | color);
+		}
 		amount--;
 	}
 	return true;

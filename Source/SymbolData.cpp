@@ -208,6 +208,7 @@ std::array<std::vector<SymbolData::Shape>, SymbolID::NUM_SYMBOLS> SymbolData::Ge
 	AddAntiTriangles(data);
 	AddCaves(data);
 	AddMines(data);
+	AddFlower(data);
 
 	return data;
 }
@@ -565,4 +566,33 @@ void SymbolData::AddMines(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>&
 	data[MINESWEEPER6] = { Scale(mine6,scale) };
 	data[MINESWEEPER7] = { Scale(mine7,scale) };
 	data[MINESWEEPER8] = { Scale(mine8,scale) };
+}
+
+void SymbolData::AddFlower(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>& data) {
+	Shape petalPart1 = {
+		{0.34, 1.25},
+		{-0.34, 1.25},
+		{-1.54, 2.67},
+		{1.54, 2.67},
+	};
+	Shape petalPart2 = {
+		{1.54, 2.67},
+		{1.08, 1.38},
+		{0.65, 1.62},
+	};
+	Shape petalPart3 = {
+		{-1.54, 2.67},
+		{-0.7, 3.15},
+		{0.0, 2.67},
+	};
+	Shape petalPart4 = {
+		{0.0, 2.67},
+		{0.7, 3.15},
+		{1.54, 2.67},
+	};
+
+	std::vector<Shape> petal = Combine(petalPart1, petalPart2, petalPart3, petalPart4); //This symbol is too complex to go through the normal triangulation, we must do some of the work
+
+	double scale = 0.21;
+	data[FLOWER] = { RotateClockwise(Scale(Combine(petal, RotateClockwise(petal, 60), RotateClockwise(petal, 120), RotateClockwise(petal, 180), RotateClockwise(petal, 240), RotateClockwise(petal, 300)),scale),30) };
 }

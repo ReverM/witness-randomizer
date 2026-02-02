@@ -61,12 +61,14 @@ enum SymbolID : int { //This list, SYMBOL_TYPES, and Symbol enums must have the 
 	MINESWEEPER7 = 0x2C,
 	MINESWEEPER8 = 0x2D,
 
-	BigSquare = 0x2E,
+	FLOWER = 0x2E,
+
+	BigSquare = 0x2F,
 
 	NUM_SYMBOLS, // Must be last
 };
 
-inline constexpr SymbolID SYMBOL_TYPES[] = { ARROW1E, ANTITRIANGLE1, CAVE1, MINESWEEPER0, BigSquare };
+inline constexpr SymbolID SYMBOL_TYPES[] = { ARROW1E, ANTITRIANGLE1, CAVE1, MINESWEEPER0, FLOWER, BigSquare };
 
 class SymbolData {
 public:
@@ -114,4 +116,5 @@ private:
 	static void AddAntiTriangles(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>& data);
 	static void AddCaves(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>& data);
 	static void AddMines(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>& data);
+	static void AddFlower(std::array<std::vector<Shape>, SymbolID::NUM_SYMBOLS>& data);
 };

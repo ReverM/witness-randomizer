@@ -128,6 +128,8 @@ private:
 	bool placeAntiTriangles(int color, int amount, int targetCount);
 	bool placeCaveClues(int color, int amount, int targetCount);
 	bool placeMinesweeperClues(int color, int amount, int targetCount);
+	bool placeFlowers(int color, int amount);
+	bool placeFlowerStarPairs(int color, int amount);
 
 	
 
