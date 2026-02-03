@@ -250,7 +250,111 @@ int Panel::getSymSolutionPoint(int index) {
 	}
 }
 
-//Count the occurrence of the given symbol color in the given region (for the stars)
+bool Panel::checkSymbol(Point pos, int symbol) {
+	Symbol type = getType(get(pos));
+	std::set<Point> region = getRegion(pos);
+	if (type == Stone) {
+		if (!checkStone(pos, symbol, region)) return false;
+	}
+	else if (type == Triangle) {
+		if (!checkTriangle(pos, symbol)) return false;
+	}
+	else if (type == Star) {
+		if (!checkStar(pos, symbol, region)) return false;
+	}
+	else if (type == Poly) {
+		if (!checkShape(pos, symbol, region)) return false;
+	}
+	else if (type == Custom) {
+		symbol = SymbolData::GetSymbolFromVal(symbol);
+		type = static_cast<Symbol>(symbol & 0xFF00);
+		if (type == Arrow) {
+			if (!checkArrow(pos, symbol)) return false;
+		}
+		else if (type == AntiTriangle) {
+			if (!checkAntiTriangle(pos, symbol)) return false;
+		}
+		else if (type == Cave) {
+			if (!checkCave(pos, symbol)) return false;
+		}
+		else if (type == Minesweeper0) {
+			if (!checkMinesweeper(pos, symbol)) return false;
+		}
+		else if (type == Flower) {
+			if (!checkFlower(pos, symbol, region)) return false;
+		}
+	}
+	return true;
+}
+
+bool Panel::checkStone(Point pos, int symbol, const std::set<Point>& region) {
+	for (Point p : region) {
+		int sym = get(p);
+		if (getType(sym) == Stone && getColor(sym) != getColor(symbol)) return false;
+	}
+	return true;
+}
+
+bool Panel::checkStar(Point pos, int symbol, const std::set<Point>& region) {
+	return countColor(region, getColor(symbol)) == 2;
+}
+
+bool Panel::checkShape(Point pos, int symbol, const std::set<Point>& region) {
+	return true;
+}
+
+bool Panel::checkTriangle(Point pos, int symbol) {
+	return countSides(pos) == (symbol >> 16);
+}
+
+bool Panel::checkArrow(Point pos, int symbol) {
+	int targetCount = (symbol >> 23) + 1;
+	Point dir = DIRECTIONS8_2[(symbol >> 20) & 0x7];
+	return countCrossings(pos, dir) == targetCount;
+}
+
+bool Panel::checkAntiTriangle(Point pos, int symbol) {
+	int targetCount = (symbol >> 20) + 1;
+	return countTurns(pos) == targetCount;
+}
+
+bool Panel::checkCave(Point pos, int symbol) {
+	int targetCount = (symbol >> 20) + 1;
+	int count = 1;
+	for (Point dir : DIRECTIONS) {
+		Point temp = pos;
+		while (get(temp.x + dir.x + dir.x, temp.y + dir.y + dir.y) != OFF_GRID && (get(temp.x + dir.x + dir.x, temp.y + dir.y + dir.y) & Empty) != Empty && get(temp.x + dir.x, temp.y + dir.y) != PATH) {
+			count++;
+			temp = temp + dir + dir;
+		}
+	}
+	return count == targetCount;
+}
+
+bool Panel::checkMinesweeper(Point pos, int symbol) { //TODO: Handle empty spaces (these should probably just return OFF_GRID)
+	int targetCount = (symbol >> 20);
+	int count = 0;
+	std::set<Point> region = getRegion(pos);
+	for (Point dir : Panel::DIRECTIONS8_2) {
+		if (get(pos + dir) != OFF_GRID && !region.count(pos + dir))
+			count++;
+	}
+	return count == targetCount;
+}
+
+bool Panel::checkFlower(Point pos, int symbol, const std::set<Point>& region) {
+	std::set<Point> col, row;
+	for (Point p : region) {
+		if (p.x == pos.x)
+			row.insert(p);
+		if (p.y == pos.y)
+			col.insert(p);
+	}
+	int color = getColor(symbol);
+	return (countColor(col, color) > 1) != (countColor(row, color) > 1);
+}
+
+//Count the occurrence of the given symbol color in the given region
 int Panel::countColor(const std::set<Point>& region, int color) {
 	int count = 0;
 	for (Point p : region) {
@@ -335,16 +439,17 @@ void Panel::writeDecorations() {
 	style &= ~0x3fc0; //Remove all element flags
 	for (int y = height - 2; y > 0; y -= 2) {
 		for (int x = 1; x < width; x += 2) {
-			decorations.push_back(get(x, y));
-			decorationColors.push_back(getColorRGB(static_cast<SymbolColor>(getSymbolColor(x, y))));
-			if (get(x, y)) any = true;
-			int shape = getSymbolShape(x, y);
-			if (shape == Stone) style |= HAS_STONES;
-			else if (shape == Star) style |= HAS_STARS;
-			else if (shape == Poly) style |= HAS_SHAPERS;
-			else if (shape == Eraser) style |= HAS_ERASERS;
-			else if (shape == Triangle) style |= HAS_TRIANGLES;
-			else if (shape != 0) style |= HAS_CUSTOM;
+			int val = get(x, y);
+			decorations.push_back(val);
+			decorationColors.push_back(getColorRGB(getColor(val)));
+			if (val) any = true;
+			int type = getType(val);
+			if (type == Stone) style |= HAS_STONES;
+			else if (type == Star) style |= HAS_STARS;
+			else if (type == Poly) style |= HAS_SHAPERS;
+			else if (type == Eraser) style |= HAS_ERASERS;
+			else if (type == Triangle) style |= HAS_TRIANGLES;
+			else if (type != 0) style |= HAS_CUSTOM;
 		}
 	}
 	if (!any) {

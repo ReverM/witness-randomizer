@@ -25,6 +25,7 @@ enum Symbol : int {
 	Dot_Row = 0x240020,
 	Dot_Column = 0x440020,
 	Dot_Intersection = 0x600020,
+	Custom = 0x700,
 	//Custom symbols - Don't actually set these values into the grid.
 	//Instead, use values from GetValFromSymbol or GetValFromSymbolID.
 	//Format: 0xVVTT700		T = Symbol Type (Must go up by 1 for each new type)		V = Symbol Variant
@@ -159,6 +160,7 @@ enum PanelVar : int {
 	CYLINDER_Z0 = 0x2F8,
 	CYLINDER_Z1 = 0x2FC,
 	CYLINDER_RADIUS = 0x300,
+	ERASER_STATUS_TIME_TO_REJUDGE = 0x310, //int
 	PATTERN_SCALE = 0x338,
 	CURSOR_SPEED_SCALE = 0x350,
 	NEEDS_REDRAW = 0x37C, //int
@@ -234,3 +236,6 @@ enum Config {
 };
 
 enum Difficulty { Normal, Expert, Symbols };
+
+constexpr Symbol getType(int symbol) { return static_cast<Symbol>(symbol & 0xF00); }
+constexpr SymbolColor getColor(int symbol) { return static_cast<SymbolColor>(symbol & 0xF); }

@@ -69,8 +69,6 @@ public:
 	int getFlag(int x, int y, int flag) { return get(x, y) & flag; };
 	void setFlag(int x, int y, int flag) { set(x, y, get(x, y) | flag); };
 	void clearFlag(int x, int y, int flag) { set(x, y, get(x, y) & ~flag); };
-	int getSymbolColor(int x, int y) { return grid[x][y] & 0xF; }
-	int getSymbolShape(int x, int y) { return grid[x][y] & 0xF00; }
 	void setSymbol(int x, int y, Symbol symbol, SymbolColor color);
 	void setShape(int x, int y, int shape, bool rotate, bool negative, SymbolColor color);
 	void setGridSymbol(int x, int y, Symbol symbol, SymbolColor color); //TODO: Rename this?
@@ -84,6 +82,19 @@ public:
 	Point getSymPoint(int x, int y) { return getSymPoint(x, y, symmetry); }
 	Point getSymPoint(int x, int y, Symmetry symmetry);
 	int getSymSolutionPoint(int index);
+	bool checkSymbol(Point pos, int symbol); //Add new custom symbol checks to this function
+	bool checkSymbol(Point pos) { return checkSymbol(pos, get(pos)); }
+	bool checkStone(Point pos, int symbol, const std::set<Point>& region);
+	bool checkStar(Point pos, int symbol, const std::set<Point>& region);
+	bool checkShape(Point pos, int symbol, const std::set<Point>& region);
+	bool checkTriangle(Point pos, int symbol);
+	//**************CUSTOM SYMBOLS***********************
+	bool checkArrow(Point pos, int symbol);
+	bool checkAntiTriangle(Point pos, int symbol);
+	bool checkCave(Point pos, int symbol);
+	bool checkMinesweeper(Point pos, int symbol);
+	bool checkFlower(Point pos, int symbol, const std::set<Point>& region);
+	//***************************************************
 	int countColor(const std::set<Point>& region, int color);
 	int countSides(Point pos);
 	int countCrossings(Point pos, Point dir);

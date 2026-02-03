@@ -70,8 +70,8 @@ void SymbolsWatchdog::action() {
 	for (int x = 1; x < panel.width; x++) {
 		for (int y = 1; y < panel.height; y++) {
 			int symbol = get(x, y);
-			if ((symbol & 0xF00) != 0x700) continue; //Skip non-custom symbols
-			if (!checkSymbol(x, y)) {
+			if (getType(symbol) != Custom) continue; //Skip non-custom symbols
+			if (!panel.checkSymbol({ x, y })) {
 				//LOG_DEBUG("Symbol at %d, %d NOT valid", x, y);
 				memory->WriteToArray(id, DECORATION_FLAGS, panel.pointToDecorationIndex(x, y), 1);
 				success = false;
@@ -140,79 +140,6 @@ int SymbolsWatchdog::get(int x, int y) {
 
 void SymbolsWatchdog::set(int x, int y, int val) {
 	panel.set(x, y, val);
-}
-
-bool SymbolsWatchdog::checkSymbol(int x, int y) {
-	int type = getCustomSymbol(x, y) & 0xFF00;
-	if (type == Arrow) {
-		if (!checkArrow(x, y)) return false;
-	}
-	else if (type == AntiTriangle) {
-		if (!checkAntiTriangle(x, y)) return false;
-	}
-	else if (type == Cave) {
-		if (!checkCave(x, y)) return false;
-	}
-	else if (type == Minesweeper0) {
-		if (!checkMinesweeper(x, y)) return false;
-	}
-	else if (type == Flower) {
-		if (!checkFlower(x, y)) return false;
-	}
-	return true;
-}
-
-bool SymbolsWatchdog::checkArrow(int x, int y) {
-	int symbol = getCustomSymbol(x, y);
-	int targetCount = (symbol >> 23) + 1;
-	Point dir = Panel::DIRECTIONS8_2[(symbol >> 20) & 0x7];
-	return panel.countCrossings({ x, y }, dir) == targetCount;
-}
-
-bool SymbolsWatchdog::checkAntiTriangle(int x, int y) {
-	int symbol = getCustomSymbol(x, y);
-	int targetCount = (symbol >> 20) + 1;
-	return panel.countTurns({ x, y }) == targetCount;
-}
-
-bool SymbolsWatchdog::checkCave(int x, int y) {
-	int symbol = getCustomSymbol(x, y);
-	int targetCount = (symbol >> 20) + 1;
-	int count = 1;
-	for (Point dir : Panel::DIRECTIONS) {
-		Point temp = { x, y };
-		while (get(temp.x + dir.x + dir.x, temp.y + dir.y + dir.y) != OFF_GRID && (get(temp.x + dir.x + dir.x, temp.y + dir.y + dir.y)&Empty) != Empty && get(temp.x + dir.x, temp.y + dir.y) != PATH) {
-			count++;
-			temp = temp + dir + dir;
-		}
-	}
-	return count == targetCount;
-}
-
-bool SymbolsWatchdog::checkMinesweeper(int x, int y) {
-	int symbol = getCustomSymbol(x, y);
-	int targetCount = (symbol >> 20);
-	int count = 0;
-	std::set<Point> region = panel.getRegion({ x, y });
-	for (Point dir : Panel::DIRECTIONS8_2) {
-		if (get(x + dir.x, y + dir.y) != OFF_GRID && !(region.count({x + dir.x, y + dir.y})))
-			count++;
-	}
-	return count == targetCount;
-}
-
-bool SymbolsWatchdog::checkFlower(int x, int y) {
-	int symbol = getCustomSymbol(x, y);
-	std::set<Point> region = panel.getRegion({ x, y });
-	std::set<Point> col, row;
-	for (Point p : region) {
-		if (p.x == x)
-			row.insert(p);
-		if (p.y == y)
-			col.insert(p);
-	}
-	int color = symbol & (symbol & 0xf);
-	return (panel.countColor(col, color) > 1) != (panel.countColor(row, color) > 1);
 }
 
 //Keep Watchdog - Keep the big panel off until all panels are solved

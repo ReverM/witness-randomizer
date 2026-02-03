@@ -1112,7 +1112,7 @@ bool Generate::placeDots(int amount, int color, bool intersectionOnly) {
 bool Generate::canPlaceStone(const std::set<Point>& region, int color) {
 	for (Point p : region) {
 		int sym = get(p);
-		if (getSymbolShape(sym) == Stone) return (sym & 0xf) == color;
+		if (getType(sym) == Stone) return (sym & 0xf) == color;
 	}
 	return true;
 }
@@ -1632,16 +1632,16 @@ bool Generate::placeErasers(const std::vector<int>& colors, const std::vector<in
 		}
 		if ((open2.size() == 0 || splitPoints.size() == 0 && open2.size() == 1) && !(toErase & Dot)) continue;
 		bool canPlace = false;
-		if (getSymbolShape(toErase) == Stone) {
+		if (getType(toErase) == Stone) {
 			canPlace = !canPlaceStone(region, toErase & 0xf);
 		}
-		else if (getSymbolShape(toErase) == Star) {
+		else if (getType(toErase) == Star) {
 			canPlace = (panel.countColor(region, toErase & 0xf) + (color == (toErase & 0xf) ? 1 : 0) != 1);
 		}
 		else canPlace = true;
 		if (!canPlace) continue;
 
-		if (getSymbolShape(toErase) == Stone || getSymbolShape(toErase) == Star) {
+		if (getType(toErase) == Stone || getType(toErase) == Star) {
 			set(pos, toErase);
 		}
 		else if (toErase & Dot) { //Find an open edge to put the dot on
@@ -1666,7 +1666,7 @@ bool Generate::placeErasers(const std::vector<int>& colors, const std::vector<in
 			else if ((pos.y & 1) == 0) toErase |= Dot_Row;
 			set(pos, ((pos.x & 1) == 1 ? Dot_Row : (pos.y & 1) == 1 ? Dot_Column : Dot_Intersection) | (toErase & 0xffff));
 		}
-		else if (getSymbolShape(toErase) == Poly) {
+		else if (getType(toErase) == Poly) {
 			int symbol = 0; //Make a random shape to cancel
 			while (symbol == 0) {
 				std::set<Point> area = gridpos;
@@ -1683,7 +1683,7 @@ bool Generate::placeErasers(const std::vector<int>& colors, const std::vector<in
 			}
 			set(pos, symbol | (toErase & 0xf));
 		}
-		else if (getSymbolShape(toErase) == Triangle) {
+		else if (getType(toErase) == Triangle) {
 			//If the block is adjacent to a start or exit, don't place a triangle there
 			//TODO: Don't hardcode this
 			if (hasConfig(TreehouseLayout) || panel.id == CAVES_PERSPECTIVE_3) {

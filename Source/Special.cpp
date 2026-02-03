@@ -102,7 +102,7 @@ void Special::generateAntiPuzzle(PanelID id)
 		std::vector<int> symbols;
 		for (int x = 1; x < gen->panel.width; x += 2) {
 			for (int y = 1; y < gen->panel.height; y += 2) {
-				if (gen->getSymbolShape(gen->get(x, y)) == Poly) {
+				if (getType(gen->get(x, y)) == Poly) {
 					symbols.push_back(gen->get(x, y));
 					gen->set(x, y, 0);
 					for (Point p : gen->getRegion(Point(x, y))) {
@@ -506,7 +506,7 @@ void Special::generateRGBStonePuzzleH(PanelID id) {
 		Point eraserPos;
 		for (int x = 1; x < gen->panel.width; x += 2) {
 			for (int y = 1; y < gen->panel.height; y += 2) {
-				if (gen->getSymbolShape(gen->get(x, y)) == Eraser) {
+				if (getType(gen->get(x, y)) == Eraser) {
 					eraserPos = { x, y };
 					break;
 				}
@@ -690,7 +690,7 @@ void Special::generateMountaintop(PanelID id, const std::vector<std::pair<int, i
 	{ {1, 2},{2, 1}, { 2, 5 },{ 4, 3 },{ 4, 5 },{ 6, 3 },{ 6, 5 },{6, 9}, { 7, 4 },{7, 8}, { 8, 3 },{ 8, 5 },{ 9, 2 },{ 9, 4 },{ 9, 6 },{ 10, 3 },{ 10, 5 },{ 10, 7 } },
 	{ {0, 7}, { 1, 4 },{2, 1}, { 2, 3 },{ 2, 5 },{ 3, 4 },{3, 6}, { 4, 3 },{ 5, 2 },{ 6, 1 },{ 6, 3 },{ 7, 0 },{ 7, 2 },{ 7, 4 },{ 8, 1 },{ 8, 3 },{ 8, 5 },{ 9, 4 },{ 9, 6 },{ 10, 3 },{ 10, 5 },{ 10, 7 } },
 	};
-	if (gen->getSymbolShape(symbolVec[0].first) == Triangle) { //Hard mode
+	if (randomizer->difficulty == Expert) {
 		perspectiveU = { { { 1, 2 },{ 1, 4 },{ 3, 0 },{ 3, 2 },{ 3, 4 },{ 3, 6 },{ 5, 8 },{ 6, 7 },{ 7, 0 },{ 7, 2 },{ 7, 4 },{ 8, 1 },{ 8, 3 },{ 8, 5 },{ 8, 9 },{ 9, 2 },{ 9, 4 },{ 9, 6 },{ 10, 3 },{ 10, 5 },{ 10, 7 } } };
 	}
 	std::vector<std::vector<Point>> perspectiveL = {
@@ -836,14 +836,14 @@ bool Special::generate2Bridge(PanelID id1, PanelID id2, std::vector<std::shared_
 	int shapeCount = 0;
 	for (int x = 1; x < gens[1]->panel.width; x += 2) {
 		for (int y = 1; y < gens[1]->panel.height; y += 2) {
-			if (gens[1]->getSymbolShape(gens[1]->get(x, y)) == Poly && gens[1]->getRegion(Point(x, y)).size() == gens[0]->getRegion(Point(x, y)).size())
+			if (getType(gens[1]->get(x, y)) == Poly && gens[1]->getRegion(Point(x, y)).size() == gens[0]->getRegion(Point(x, y)).size())
 				if (++shapeCount == 2) return false;
 		}
 	}
 
 	for (int x = 1; x < gens[1]->panel.width; x += 2) {
 		for (int y = 1; y < gens[1]->panel.height; y += 2) {
-			if (gens[1]->getSymbolShape(gens[1]->get(x, y)) == Star) {
+			if (getType(gens[1]->get(x, y)) == Star) {
 				if (!gens[1]->getRegion(Point(x, y)).count({ 9, 7 }))
 					continue;
 				gens[1]->set(x, y, Eraser | White);
@@ -1080,7 +1080,7 @@ void Special::generateMountainFloor() //TODO: Sometimes doesn't make a rotated s
 				for (int y = 1; y <= 7; y += 2)
 					if (g.get(x, y) != 0) {
 						covered.emplace(Point(x, y));
-						if (g.getSymbolShape(g.get(x, y)) == Poly) decoyShape = g.get(x, y);
+						if (getType(g.get(x, y)) == Poly) decoyShape = g.get(x, y);
 					}
 			for (Point p : covered) newShape.erase(p);
 			if (newShape.size() == 0 || decoyShape == symbol) {
@@ -1169,8 +1169,8 @@ void Special::generateMountainFloorH()
 		//Check that the symbols made it into the shape
 		int count = 0;
 		for (Point p : newShape) {
-			if (gen.getSymbolShape(gen.get(p)) == Poly) count++;
-			if (gen.getSymbolShape(gen.get(p)) == Eraser) count--;
+			if (getType(gen.get(p)) == Poly) count++;
+			if (getType(gen.get(p)) == Eraser) count--;
 		}
 		if (count != (newShape.size() > 5 ? combine == 2 ? 4 : 2 : 1)) {
 			i--;
@@ -1180,7 +1180,7 @@ void Special::generateMountainFloorH()
 		//Check that the symbols aren't the same
 		std::set<int> symbolSet;
 		for (Point p : gen.gridpos) {
-			if (gen.getSymbolShape(gen.get(p)) == Poly) symbolSet.insert(gen.get(p));
+			if (getType(gen.get(p)) == Poly) symbolSet.insert(gen.get(p));
 		}
 		if (symbolSet.size() <= 1) {
 			i--;

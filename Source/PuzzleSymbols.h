@@ -34,10 +34,10 @@ struct PuzzleSymbols {
 				symbols[static_cast<Symbol>(s.first)].push_back(s);
 			else if (s.first & Dot)
 				symbols[Dot].push_back(s);
-			else if ((s.first & 0xF00) == 0x700) //Custom symbol
+			else if (getType(s.first) == Custom) //Custom symbol
 				symbols[static_cast<Symbol>(s.first & 0xFF00)].push_back(s);
 			else
-				symbols[static_cast<Symbol>(s.first & 0xF00)].push_back(s);
+				symbols[getType(s.first)].push_back(s);
 		}
 		style = 0;
 		if (any(Dot)) style |= HAS_DOTS;

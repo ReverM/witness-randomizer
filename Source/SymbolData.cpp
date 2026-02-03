@@ -177,26 +177,24 @@ SymbolID SymbolData::GetSymbolIDFromVal(int val) {
 }
 
 Symbol SymbolData::GetSymbolFromVal(int val) {
-	if ((val & 0xF00) != 0x700)
+	if (getType(val) != Custom)
 		return static_cast<Symbol>(val);
 	int symbolID = GetSymbolIDFromVal(val);
 	for (int i = 1; i < sizeof(SYMBOL_TYPES) / sizeof(SymbolID); i++) {
 		if (symbolID < SYMBOL_TYPES[i]) {
-			int color = val & 0xF;
 			int type = i - 1;
 			int variant = symbolID - SYMBOL_TYPES[type];
-			return static_cast<Symbol>(0x700 | color | (type << 12) | (variant << 20));
+			return static_cast<Symbol>(Custom | getColor(val) | (type << 12) | (variant << 20));
 		}
 	}
 	return Empty;
 }
 
 int SymbolData::GetValFromSymbol(int val) {
-	int color = val & 0xF;
 	int type = (val & 0xFF000) >> 12;
 	int variant = (val & 0xFF00000) >> 20;
 	SymbolID symbolID = static_cast<SymbolID>(SYMBOL_TYPES[type] + variant);
-	return GetValFromSymbolID(symbolID) | color;
+	return GetValFromSymbolID(symbolID) | getColor(val);
 }
 
 std::array<std::vector<SymbolData::Shape>, SymbolID::NUM_SYMBOLS> SymbolData::GetAllShapes() {

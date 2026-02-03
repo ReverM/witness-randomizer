@@ -73,7 +73,6 @@ private:
 	int get(Point p) { return panel.get(p); }
 	void set(int x, int y, int val) { panel.set(x, y, val); }
 	void set(Point p, int val) { panel.set(p, val); }
-	int getSymbolShape(int flags) { return flags & 0xF00; }
 	void setPath(Point pos);
 	Point getSymPoint(int x, int y) { return panel.getSymPoint(x, y); }
 	Point getSymPoint(Point p) { return panel.getSymPoint(p.x, p.y); }
