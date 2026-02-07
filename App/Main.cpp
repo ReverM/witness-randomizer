@@ -478,24 +478,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		10, 200, 570, 35, hwnd, (HMENU)IDC_DOUBLE, hInstance, NULL);
 	hwndLegacyPillars = CreateWindow(L"BUTTON", L"Legacy Pillars - Pillars will now behave like they did in the legacy version making them much nicer to solve.",
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_CHECKBOX | BS_MULTILINE,
-		10, 240, 570, 50, hwnd, (HMENU)IDC_LEGACYPILLAR, hInstance, NULL);
+		10, 240, 570, 35, hwnd, (HMENU)IDC_LEGACYPILLAR, hInstance, NULL);
 	if (randomizer.doubleMode) SendMessage(hwndDoubleMode, BM_SETCHECK, BST_CHECKED, 1);
 
 	CreateWindow(L"STATIC", L"Enter a seed (optional):",
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | SS_LEFT,
-		10, 300, 160, 16, hwnd, NULL, hInstance, NULL);
+		10, 290, 160, 16, hwnd, NULL, hInstance, NULL);
 	hwndSeed = CreateWindow(MSFTEDIT_CLASS, lastSeed == 0 ? L"" : std::to_wstring(lastSeed).c_str(),
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER,
-		180, 295, 60, 26, hwnd, NULL, hInstance, NULL);
+		180, 285, 60, 26, hwnd, NULL, hInstance, NULL);
 	SendMessage(hwndSeed, EM_SETEVENTMASK, NULL, ENM_CHANGE); // Notify on text change
 
 	hwndRandomize = CreateWindow(L"BUTTON", L"Randomize",
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		250, 295, 130, 26, hwnd, (HMENU)IDC_RANDOMIZE, hInstance, NULL);
+		250, 285, 130, 26, hwnd, (HMENU)IDC_RANDOMIZE, hInstance, NULL);
 
 	hwndLoadingText = CreateWindow(L"STATIC", L"",
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | SS_LEFT,
-		400, 250, 160, 16, hwnd, NULL, hInstance, NULL);
+		400, 290, 160, 16, hwnd, NULL, hInstance, NULL);
 
 	std::ifstream configFile("WRPGconfig.txt");
 	if (configFile.is_open()) {
