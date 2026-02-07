@@ -147,7 +147,7 @@ void Memory::setPillar() {
 	}
 	else {
 		memory->WriteData<byte>({ (int)(_pillarLegacyChange) }, { 0x73, 0x08 });
-		memory->WriteData<byte>({ (int)(_pillarLegacyChange +10) }, { 0xF3, 0x41, 0x0F, 0x59, 0xD4 });
+		memory->WriteData<byte>({ (int)(_pillarLegacyChange + 10) }, { 0xF3, 0x41, 0x0F, 0x59, 0xD4 });
 	}
 
 }
