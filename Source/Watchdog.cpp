@@ -47,6 +47,10 @@ SymbolsWatchdog::SymbolsWatchdog() : Watchdog(0.1f) {
 void SymbolsWatchdog::action() {
 	PanelID active = memory->GetActivePanel();
 	if (active != id) {
+		if (active == -1 && (ReadPanelData<int>(id, STYLE_FLAGS) & HAS_CUSTOM)
+			&& ReadPanelData<int>(id, ERASER_ACTIVE)) {
+			(new EraserWatchdog(id))->start();
+		}
 		id = active;
 		if (active == -1 || (ReadPanelData<int>(active, STYLE_FLAGS) & HAS_CUSTOM) == 0) {
 			sleepTime = 0.1f;
@@ -134,12 +138,52 @@ void SymbolsWatchdog::initPath() {
 	}
 }
 
-int SymbolsWatchdog::get(int x, int y) {
-	return panel.get(x, y);
+EraserWatchdog::EraserWatchdog(PanelID id) : Watchdog(0.1f) {
+	memory = Memory::get();
+	this->id = id;
+	this->panel = Panel(id);
 }
 
-void SymbolsWatchdog::set(int x, int y, int val) {
-	panel.set(x, y, val);
+void EraserWatchdog::action() {
+	for (int x = 1; x < panel.width; x++) {
+		for (int y = 1; y < panel.height; y++) {
+			int symbol = get(x, y);
+			if (getType(symbol) == Eraser) {
+				panel.set(x, y, None);
+				int eraser = panel.pointToDecorationIndex(x, y);
+				int erased = getErasedSymbol({ x, y });
+				if (erased != -1)
+					memory->WriteArray<int>(id, ERASED_DECORATIONS, { eraser, erased });
+			}
+		}
+	}
+	terminate = true;
+}
+
+int EraserWatchdog::getErasedSymbol(Point eraserPos) {
+	std::set<Point> region = panel.getRegion(eraserPos);
+	std::set<Point> errors;
+	for (Point p : region) {
+		if (!panel.checkSymbol(p)) {
+			errors.insert(p);
+		}
+	}
+	panel.preCalcResult.clear();
+	for (Point p : errors) {
+		int symbol = panel.get(p);
+		panel.set(p, None);
+		bool valid = true;
+		for (Point p2 : region) {
+			if (!panel.checkSymbol(p2)) {
+				valid = false;
+				break;
+			}
+		}
+		panel.preCalcResult.clear();
+		panel.set(p, symbol);
+		if (valid) return panel.pointToDecorationIndex(p.x, p.y);
+	}
+	return -1;
 }
 
 //Keep Watchdog - Keep the big panel off until all panels are solved

@@ -84,16 +84,16 @@ public:
 	int getSymSolutionPoint(int index);
 	bool checkSymbol(Point pos, int symbol); //Add new custom symbol checks to this function
 	bool checkSymbol(Point pos) { return checkSymbol(pos, get(pos)); }
-	bool checkStone(Point pos, int symbol, const std::set<Point>& region);
-	bool checkStar(Point pos, int symbol, const std::set<Point>& region);
-	bool checkShape(Point pos, int symbol, const std::set<Point>& region);
+	bool checkStone(Point pos, int symbol);
+	bool checkStar(Point pos, int symbol);
+	bool checkShape(Point pos, int symbol);
 	bool checkTriangle(Point pos, int symbol);
 	//**************CUSTOM SYMBOLS***********************
 	bool checkArrow(Point pos, int symbol);
 	bool checkAntiTriangle(Point pos, int symbol);
 	bool checkCave(Point pos, int symbol);
 	bool checkMinesweeper(Point pos, int symbol);
-	bool checkFlower(Point pos, int symbol, const std::set<Point>& region);
+	bool checkFlower(Point pos, int symbol);
 	//***************************************************
 	int countColor(const std::set<Point>& region, int color);
 	int countSides(Point pos);
@@ -119,6 +119,7 @@ public:
 	enum ColorMode { Default, Reset, Alternate, WriteColors };
 	ColorMode colorMode;
 	bool fixBackground;
+	std::map<Point, bool> preCalcResult;
 
 private:
 

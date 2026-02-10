@@ -45,8 +45,8 @@ public:
 	SymbolsWatchdog();
 	virtual void action();
 	void initPath();
-	int get(int x, int y);
-	void set(int x, int y, int val);
+	int get(int x, int y) { return panel.get(x, y); }
+	void set(int x, int y, int val) { panel.set(x, y, val); }
 
 	PanelID id;
 	std::vector<SolutionPoint> traced;
@@ -55,6 +55,19 @@ private:
 	Memory* memory;
 	Panel panel;
 	uintptr_t sequenceArray = 0;
+};
+
+class EraserWatchdog : public Watchdog {
+public:
+	EraserWatchdog(PanelID id);
+	virtual void action();
+	int getErasedSymbol(Point eraserPos);
+	int get(int x, int y) { return panel.get(x, y); }
+	void set(int x, int y, int val) { panel.set(x, y, val); }
+private:
+	PanelID id;
+	Panel panel;
+	Memory* memory;
 };
 
 //TODO: Replace these with a more generic "TargetWatchdog" and addTarget method.

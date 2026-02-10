@@ -251,19 +251,19 @@ int Panel::getSymSolutionPoint(int index) {
 }
 
 bool Panel::checkSymbol(Point pos, int symbol) {
+	if (preCalcResult.count(pos)) return preCalcResult[pos];
 	Symbol type = getType(get(pos));
-	std::set<Point> region = getRegion(pos);
 	if (type == Stone) {
-		if (!checkStone(pos, symbol, region)) return false;
+		if (!checkStone(pos, symbol)) return false;
 	}
 	else if (type == Triangle) {
 		if (!checkTriangle(pos, symbol)) return false;
 	}
 	else if (type == Star) {
-		if (!checkStar(pos, symbol, region)) return false;
+		if (!checkStar(pos, symbol)) return false;
 	}
 	else if (type == Poly) {
-		if (!checkShape(pos, symbol, region)) return false;
+		if (!checkShape(pos, symbol)) return false;
 	}
 	else if (type == Custom) {
 		symbol = SymbolData::GetSymbolFromVal(symbol);
@@ -281,13 +281,14 @@ bool Panel::checkSymbol(Point pos, int symbol) {
 			if (!checkMinesweeper(pos, symbol)) return false;
 		}
 		else if (type == Flower) {
-			if (!checkFlower(pos, symbol, region)) return false;
+			if (!checkFlower(pos, symbol)) return false;
 		}
 	}
 	return true;
 }
 
-bool Panel::checkStone(Point pos, int symbol, const std::set<Point>& region) {
+bool Panel::checkStone(Point pos, int symbol) {
+	std::set<Point> region = getRegion(pos);
 	for (Point p : region) {
 		int sym = get(p);
 		if (getType(sym) == Stone && getColor(sym) != getColor(symbol)) return false;
@@ -295,12 +296,34 @@ bool Panel::checkStone(Point pos, int symbol, const std::set<Point>& region) {
 	return true;
 }
 
-bool Panel::checkStar(Point pos, int symbol, const std::set<Point>& region) {
+bool Panel::checkStar(Point pos, int symbol) {
+	std::set<Point> region = getRegion(pos);
 	return countColor(region, getColor(symbol)) == 2;
 }
 
-bool Panel::checkShape(Point pos, int symbol, const std::set<Point>& region) {
-	return true;
+bool Panel::checkShape(Point pos, int symbol) {
+	std::set<Point> region = getRegion(pos);
+	std::vector<int> shapes;
+	std::set<Point> shapePos;
+	int totalArea = 0;
+	for (Point p : region) {
+		int sym = get(p);
+		if (getType(sym) == Poly) {
+			shapes.emplace_back(sym);
+			shapePos.insert(p);
+			while (sym) {
+				totalArea += (sym & 1);
+				sym >>= 1;
+			}
+		}
+	}
+	bool result;
+	if (totalArea == 0) result = true;
+	else result = (totalArea == region.size()); //TODO: Write an actual shape checker
+	for (Point p : shapePos) {
+		preCalcResult[p] = result;
+	}
+	return result;
 }
 
 bool Panel::checkTriangle(Point pos, int symbol) {
@@ -342,7 +365,8 @@ bool Panel::checkMinesweeper(Point pos, int symbol) { //TODO: Handle empty space
 	return count == targetCount;
 }
 
-bool Panel::checkFlower(Point pos, int symbol, const std::set<Point>& region) {
+bool Panel::checkFlower(Point pos, int symbol) {
+	std::set<Point> region = getRegion(pos);
 	std::set<Point> col, row;
 	for (Point p : region) {
 		if (p.x == pos.x)
@@ -429,6 +453,7 @@ void Panel::readDecorations() {
 		if ((decorations[i] & Empty) == Empty)
 			fixBackground = true;
 	}
+	preCalcResult.clear();
 }
 
 void Panel::writeDecorations() {

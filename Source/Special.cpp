@@ -1574,7 +1574,6 @@ bool Special::hasBeenRandomized() {
 //For testing/debugging purposes only
 void Special::test() {
 	g.resetConfig();
-	g.setGridSize(4, 4);
-	g.lineThickness = 1.0f;
-	g.generate(TUT_DOT_1, Minesweeper|Black, 4, AntiTriangle|Black, 4, Arrow|Black, 4, Start, 1, Exit, 1);
+	PanelID id = MILL_DOT_2;
+
 }

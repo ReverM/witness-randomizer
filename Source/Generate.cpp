@@ -1112,7 +1112,7 @@ bool Generate::placeDots(int amount, int color, bool intersectionOnly) {
 bool Generate::canPlaceStone(const std::set<Point>& region, int color) {
 	for (Point p : region) {
 		int sym = get(p);
-		if (getType(sym) == Stone) return (sym & 0xf) == color;
+		if (getType(sym) == Stone) return getColor(sym) == color;
 	}
 	return true;
 }
@@ -1719,6 +1719,44 @@ bool Generate::placeErasers(const std::vector<int>& colors, const std::vector<in
 		amount--;
 	}
 	return true;
+}
+
+//WIP
+int Generate::makeCanceledSymbol(Point pos, int toErase, const std::set<Point>& region) {
+	if (getType(toErase) == Poly) {
+		int symbol = 0; //Make a random shape to cancel
+		while (symbol == 0) {
+			std::set<Point> area = gridpos;
+			int shapeSize;
+			if ((toErase & Negative) || hasConfig(SmallShapes)) shapeSize = rand(1, 3);
+			else {
+				shapeSize = rand(1, 5);
+				if (shapeSize < 3)
+					shapeSize += rand(3);
+			}
+			Shape shape = generateShape(area, pickRandom(area), shapeSize);
+			symbol = makeShapeSymbol(shape, toErase & Rotate, toErase & Negative);
+		}
+		return symbol | getColor(toErase);
+	}
+	if (getType(toErase) == Triangle && (toErase & 0xF0000) == 0) {
+		//If the block is adjacent to a start or exit, don't place a triangle there
+		//TODO: Don't hardcode this
+		if (hasConfig(TreehouseLayout) || panel.id == CAVES_PERSPECTIVE_3) {
+			bool found = false;
+			for (Point dir : Panel::DIRECTIONS) {
+				if (starts.count(pos + dir) || exits.count(pos + dir)) {
+					found = true;
+					break;
+				}
+			}
+			if (found) return 0;
+		}
+		int count = rand(3) + 1;
+		return toErase | (count << 16);
+	}
+
+	return toErase;
 }
 
 //For the mountain floor puzzle on hard mode. Combine two tetris shapes into one
