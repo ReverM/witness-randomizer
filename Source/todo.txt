@@ -1,0 +1,68 @@
+TODO LIST FOR 2.0
+
+BUGS / INCOMPLETE FEATURES:
+
+Eraser:
+- Fix eraser+custom+dots
+- Eraser generation with new symbols (make this more automatic if possible)
+- Multi-eraser support
+- Proper tetris shape checking
+Flower:
+- Fix checking
+- Fix generation
+Antitriangle:
+- Get multiple exits working correctly
+Change watchdog to detect exits
+Have Empty tiles return OFF_GRID when checked, yet still write correctly
+Fix invisible symbols with double mode
+Fix metapuzzle rotated shape not getting placed sometimes
+
+NEW FEATURES:
+
+Activate non-randomized lasers and doors automatically
+Normal/Expert Bunker randomization?
+Randomize challenge?
+Forced symbol placement using setSymbol rather than hard-coding
+Have only one user-facing set function (setSymbol)
+Automatic start/exit placement for custom symmetry
+Add desert latch watchdog
+Add target watchdog to replace Town, Treehouse, and Keep watchdogs
+
+SYMBOLS TO ADD:
+
+For 2.0:
+- Rotating arrow
+- Crown (Basically ghost but hopefully easier to draw)
+- Dart
+- Negation Start (may require a lot of work)
+- Copier (also may be a bit hard to make)
+- Matcher (Sigma)
+- Replicator (Sigma)
+- Open Circle (Sigma)
+- Arch (Sigma)
+- Wormhole (Sigma)
+- Bars?
+- Inverse myopia arrows?
+For Variety/Despair Compatibility (Might not be in first release):
+- Diamond (Has generation complications)
+- Myopia
+- Dice
+- Black Hole
+- Heads
+- Water drops
+
+SYMBOL LOCATIONS (CURRENT PLAN)
+
+Tutorial: Open Circle, Crown
+Symmetry: Arrow, Rotating Arrow, Arch?
+Desert: Arch, Wormhole?
+Quarry: Eraser Start, Copier
+Shadows: ? (Maybe nothing if the shadows are too distracting)
+Keep: Symbols from other areas
+Bunker: Flower
+Swamp: Matcher, Replicator
+Treehouse: Anti-triangle, Dart, Cave
+Town: Custom symbol combinations
+Jungle: ? (Might also be non-randomized if birds are too annoying)
+Monastery: Probably nothing due to lack of actual panels
+Discards/Caves: Minesweeper
