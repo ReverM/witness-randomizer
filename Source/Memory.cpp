@@ -295,6 +295,17 @@ __int64 Memory::ReadStaticInt(__int64 offset, int index, const std::vector<byte>
 	return offset + index + bytesToEOL + *(int*)&data[index];
 }
 
+void Memory::LogDebug(const char* fmt, ...) {
+	char message[1024] = "\0";
+	va_list args;
+	va_start(args, fmt);
+	vsprintf_s(&message[0], sizeof(message) / sizeof(message[0]), fmt, args);
+	va_end(args);
+	char message2[1024] = "\0";
+	snprintf(&message2[0], sizeof(message2) / sizeof(message2[0]), "%s\n", message);
+	OutputDebugStringA(message2);
+}
+
 void Memory::ThrowError(std::string message) {
 	if (!showMsg) throw std::exception(message.c_str());
 	DWORD exitCode;

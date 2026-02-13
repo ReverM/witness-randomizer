@@ -8,20 +8,6 @@
 #include "Panel.h"
 #include "Randomizer.h"
 
-#define LOG_DEBUG(fmt, ...) LogDebug(__FILE__, __LINE__, fmt, __VA_ARGS__)
-void LogDebug(const char* function, int line, const char* fmt, ...) {
-	char message[1024] = "\0";
-
-	va_list args;
-	va_start(args, fmt);
-	vsprintf_s(&message[0], sizeof(message) / sizeof(message[0]), fmt, args);
-	va_end(args);
-
-	char message2[1024] = "\0";
-	snprintf(&message2[0], sizeof(message2) / sizeof(message2[0]), "[%s:%d] %s\n", function, line, message);
-	OutputDebugStringA(message2);
-}
-
 void Watchdog::start()
 {
 	std::thread{ &Watchdog::run, this }.detach();
@@ -49,7 +35,8 @@ void SymbolsWatchdog::action() {
 	if (active != id) {
 		if (active == -1 && (ReadPanelData<int>(id, STYLE_FLAGS) & HAS_CUSTOM)
 			&& ReadPanelData<int>(id, ERASER_ACTIVE)) {
-			(new EraserWatchdog(id))->start();
+			initPath();
+			(new EraserWatchdog(id, panel, sequenceArray))->start();
 		}
 		id = active;
 		if (active == -1 || (ReadPanelData<int>(active, STYLE_FLAGS) & HAS_CUSTOM) == 0) {
@@ -67,27 +54,12 @@ void SymbolsWatchdog::action() {
 	
 	std::vector<std::vector<int>> backupGrid = panel.getGrid();
 	initPath();
-	//TODO: Have watchdog check for exits
+	//TODO: Have watchdog check for exits instead of running on every path length change
 
-	bool success = true;
-	
-	for (int x = 1; x < panel.width; x++) {
-		for (int y = 1; y < panel.height; y++) {
-			int symbol = get(x, y);
-			if (getType(symbol) != Custom) continue; //Skip non-custom symbols
-			if (!panel.checkSymbol({ x, y })) {
-				//LOG_DEBUG("Symbol at %d, %d NOT valid", x, y);
-				memory->WriteToArray(id, DECORATION_FLAGS, panel.pointToDecorationIndex(x, y), 1);
-				success = false;
-			} else {
-				//LOG_DEBUG("Symbol at %d, %d NOT valid", x, y);
-				memory->WriteToArray(id, DECORATION_FLAGS, panel.pointToDecorationIndex(x, y), 0);
-			}
-		}
-	}
+	bool success = panel.checkCustomSymbols(true);
 	WritePanelData<uintptr_t>(id, SEQUENCE, success ? 0 : sequenceArray);
 	panel.setGrid(backupGrid);
-	//LOG_DEBUG("Puzzle is overall %s", (success ? "VALID" : "INVALID"));
+	//LogDebug("Puzzle is overall %s", (success ? "VALID" : "INVALID"));
 }
 
 void SymbolsWatchdog::initPath() {
@@ -138,13 +110,27 @@ void SymbolsWatchdog::initPath() {
 	}
 }
 
-EraserWatchdog::EraserWatchdog(PanelID id) : Watchdog(0.1f) {
+EraserWatchdog::EraserWatchdog(PanelID id, Panel& panel, uintptr_t sequenceArray) : Watchdog(0.1f) {
 	memory = Memory::get();
 	this->id = id;
-	this->panel = Panel(id);
+	this->panel = panel;
+	this->sequenceArray = sequenceArray;
+	checked = false;
 }
 
-void EraserWatchdog::action() {
+void EraserWatchdog::action() { //TODO: Multi-eraser support, fix dot cancellation
+	if (!memory->ReadPanelData<int>(id, ERASER_ACTIVE)) {
+		terminate = true;
+		return;
+	}
+	if (checked) {
+		if (memory->ReadPanelData<float>(id, ERASER_TIME_TO_REJUDGE) == -1) {
+			panel.checkCustomSymbols(true);
+			terminate = true;
+		}
+		return;
+	}
+	bool success = true;
 	for (int x = 1; x < panel.width; x++) {
 		for (int y = 1; y < panel.height; y++) {
 			int symbol = get(x, y);
@@ -157,7 +143,9 @@ void EraserWatchdog::action() {
 			}
 		}
 	}
-	terminate = true;
+	success = panel.checkCustomSymbols(false);
+	WritePanelData<uintptr_t>(id, SEQUENCE, success ? 0 : sequenceArray);
+	checked = true;
 }
 
 int EraserWatchdog::getErasedSymbol(Point eraserPos) {
@@ -180,8 +168,14 @@ int EraserWatchdog::getErasedSymbol(Point eraserPos) {
 			}
 		}
 		panel.preCalcResult.clear();
+		if (valid)
+			return panel.pointToDecorationIndex(p.x, p.y);
 		panel.set(p, symbol);
-		if (valid) return panel.pointToDecorationIndex(p.x, p.y);
+	}
+	if (errors.size() > 0) {
+		Point p = Random::pickRandom(errors);
+		panel.set(p, None);
+		return panel.pointToDecorationIndex(p.x, p.y);
 	}
 	return -1;
 }

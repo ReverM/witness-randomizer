@@ -7,6 +7,7 @@
 #include <functional>
 #include "SymbolData.h"
 #include "Enums.h"
+#include "Memory.h"
 
 struct Point {
 	int x, y;
@@ -82,6 +83,7 @@ public:
 	Point getSymPoint(int x, int y) { return getSymPoint(x, y, symmetry); }
 	Point getSymPoint(int x, int y, Symmetry symmetry);
 	int getSymSolutionPoint(int index);
+	bool checkCustomSymbols(bool flash);
 	bool checkSymbol(Point pos, int symbol); //Add new custom symbol checks to this function
 	bool checkSymbol(Point pos) { return checkSymbol(pos, get(pos)); }
 	bool checkStone(Point pos, int symbol);
@@ -134,6 +136,7 @@ private:
 	bool breakSegment(int x, int y, std::vector<int>& connections_a, std::vector<int>& connections_b, std::vector<float>& intersections, std::vector<int>& intersectionFlags);
 	bool breakSegmentGap(int x, int y, std::vector<int>& connections_a, std::vector<int>& connections_b, std::vector<float>& intersections, std::vector<int>& intersectionFlags);
 
+	Memory* memory;
 	std::vector<std::vector<int>> grid;
 	float minx, miny, maxx, maxy, unitWidth, unitHeight;
 

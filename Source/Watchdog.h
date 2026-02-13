@@ -1,8 +1,6 @@
 #pragma once
-#include "Randomizer.h"
-#include "Generate.h"
-#include "Memory.h"
-#include "SymbolData.h"
+#include "Panel.h"
+#include "Random.h"
 
 class Watchdog
 {
@@ -59,7 +57,7 @@ private:
 
 class EraserWatchdog : public Watchdog {
 public:
-	EraserWatchdog(PanelID id);
+	EraserWatchdog(PanelID id, Panel& panel, uintptr_t sequenceArray);
 	virtual void action();
 	int getErasedSymbol(Point eraserPos);
 	int get(int x, int y) { return panel.get(x, y); }
@@ -68,6 +66,8 @@ private:
 	PanelID id;
 	Panel panel;
 	Memory* memory;
+	uintptr_t sequenceArray = 0;
+	bool checked = false;
 };
 
 //TODO: Replace these with a more generic "TargetWatchdog" and addTarget method.

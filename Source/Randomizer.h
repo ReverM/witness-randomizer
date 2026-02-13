@@ -6,6 +6,7 @@
 #include <vector>
 #include <windows.h>
 #include "Enums.h"
+#include "Watchdog.h"
 
 class Randomizer {
 public:
@@ -32,6 +33,8 @@ public:
 	bool colorblind = false;
 	bool doubleMode = false;
 	Difficulty difficulty = Normal;
+
+	SymbolsWatchdog* symbolsWatchdog;
 
 private:
 	void RandomizeDesert();

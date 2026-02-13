@@ -4,7 +4,6 @@
 
 #include "Panel.h"
 #include "Special.h"
-#include "Memory.h"
 #include "Randomizer.h"
 #include "Watchdog.h"
 #include <sstream>
@@ -30,7 +29,7 @@ Panel::Panel(PanelID id) {
 }
 
 void Panel::read() {
-	Memory* memory = Memory::get();
+	memory = Memory::get();
 	lineThickness = 1;
 	fixBackground = decorationsOnly = false;
 	colorMode = Default;
@@ -56,7 +55,6 @@ void Panel::read() {
 }
 
 void Panel::write() {
-	Memory* memory = Memory::get();
 	memory->WritePanelData<int>(id, GRID_SIZE_X, { (width + 1) / 2 });
 	memory->WritePanelData<int>(id, GRID_SIZE_Y, { (height + 1) / 2 });
 	if (fixBackground && memory->ReadPanelData<int>(id, NUM_COLORED_REGIONS) > 0) {
@@ -240,7 +238,6 @@ Point Panel::getSymPoint(int x, int y, Symmetry symmetry) {
 //Returns the grid symetric solution point as defined by the panel's REFLECTION_DATA
 int Panel::getSymSolutionPoint(int index) {
 	if (style & SYMMETRICAL) {
-		Memory* memory = Memory::get();
 		int numIntersections = memory->ReadPanelData<int>(id, NUM_DOTS);
 		std::vector<int> symmetryData = memory->ReadArray<int>(id, REFLECTION_DATA, numIntersections);
 		return symmetryData[index];
@@ -248,6 +245,29 @@ int Panel::getSymSolutionPoint(int index) {
 	else {
 		return index;
 	}
+}
+
+#define LOG_DEBUG(fmt, ...) LogDebug(__FILE__, __LINE__, fmt, __VA_ARGS__)
+bool Panel::checkCustomSymbols(bool flash) {
+	//memory->LogDebug("Checking symbols");
+	bool success = true;
+	for (int x = 1; x < width; x++) {
+		for (int y = 1; y < height; y++) {
+			int symbol = get(x, y);
+			if (getType(symbol) != Custom) continue; //Skip non-custom symbols
+			if (!checkSymbol({ x, y })) {
+				if (!flash) return false;
+				//memory->LogDebug("Symbol at %d, %d NOT valid", x, y);
+				memory->WriteToArray(id, DECORATION_FLAGS, pointToDecorationIndex(x, y), 1);
+				success = false;
+			}
+			else if (flash) {
+				//memory->LogDebug("Symbol at %d, %d IS valid", x, y);
+				memory->WriteToArray(id, DECORATION_FLAGS, pointToDecorationIndex(x, y), 0);
+			}
+		}
+	}
+	return success;
 }
 
 bool Panel::checkSymbol(Point pos, int symbol) {
@@ -444,7 +464,6 @@ int Panel::countTurns(Point pos) //TODO: Use path order to get multiple exits wo
 }
 
 void Panel::readDecorations() {
-	Memory* memory = Memory::get();
 	int numDecorations = memory->ReadPanelData<int>(id, NUM_DECORATIONS);
 	std::vector<int> decorations = memory->ReadArray<int>(id, DECORATIONS, numDecorations);
 	for (int i=0; i<numDecorations; i++) {
@@ -457,7 +476,6 @@ void Panel::readDecorations() {
 }
 
 void Panel::writeDecorations() {
-	Memory* memory = Memory::get();
 	std::vector<int> decorations;
 	std::vector<Color> decorationColors;
 	bool any = false;
@@ -497,7 +515,6 @@ void Panel::writeDecorations() {
 }
 
 void Panel::readIntersections() {
-	Memory* memory = Memory::get();
 	int numIntersections = memory->ReadPanelData<int>(id, NUM_DOTS);
 	std::vector<float> intersections = memory->ReadArray<float>(id, DOT_POSITIONS, numIntersections * 2);
 	int numGridPoints = this->getNumGridPoints();
@@ -611,7 +628,6 @@ void Panel::readIntersections() {
 }
 
 void Panel::writeIntersections() {
-	Memory* memory = Memory::get();
 	std::vector<float> intersections;
 	std::vector<int> intersectionFlags;
 	std::vector<int> connections_a;
@@ -797,7 +813,7 @@ Color Panel::getColorRGB(SymbolColor color) {
 		case Orange: return { 1, 0.5, 0, 1 };
 		case Purple: return { 0.6f, 0, 1, 1 };
 		case Invisible: { //Copy background color TODO: Broken on double mode
-			Color xColor = Memory::get()->ReadPanelData<Color>(id, BACKGROUND_REGION_COLOR);
+			Color xColor = memory->ReadPanelData<Color>(id, BACKGROUND_REGION_COLOR);
 			xColor.a = 1;
 			return xColor;
 		}

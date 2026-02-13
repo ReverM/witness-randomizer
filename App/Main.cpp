@@ -62,7 +62,6 @@ Panel panel;
 Randomizer randomizer;
 Generate generator;
 Special specialCase;
-SymbolsWatchdog* symbolsWatchdog;
 std::vector<byte> bytes;
 
 int ctr = 0;
@@ -131,6 +130,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			specialCase.g.seed(static_cast<unsigned int>(time(NULL)));
 			specialCase.g.seed(ctr++);
 			specialCase.g.generate(memory->GetActivePanel(), symbolVec);
+			randomizer.symbolsWatchdog->id = static_cast<PanelID>(-1); //Re-initialize panel for symbol checking
 			break;
 		//Difficulty selection
 		case IDC_DIFFICULTY_NORMAL:
@@ -306,7 +306,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			panelID = memory->GetActivePanel();
 			if (panelID == -1) break;
 			panel.read(panelID);
-			panel.resize(width - (panel.isCylinder ? 1 : 0), height);
+			if (width > 1 && height > 1)
+				panel.resize(width - (panel.isCylinder ? 1 : 0), height);
 			if (symbol == Poly)
 				panel.setShape(x, y, currentShape, IsDlgButtonChecked(hwnd, IDC_ROTATED), IsDlgButtonChecked(hwnd, IDC_NEGATIVE), color);
 			else if (symbol == Start)
@@ -315,6 +316,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				panel.setFlag(x, y, ENDPOINT);
 			else panel.setSymbol(x, y, static_cast<Symbol>(symbol), color);
 			panel.write(panelID);
+			randomizer.symbolsWatchdog->id = static_cast<PanelID>(-1); //Re-initialize panel for symbol checking
 			break;
 
 			//Remove a symbol from the puzzle (debug mode only)
@@ -333,7 +335,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			panelID = memory->GetActivePanel();
 			if (panelID == -1) break;
 			panel.read(panelID);
-			panel.resize(width - (panel.isCylinder ? 1 : 0), height);
+			if (width > 1 && height > 1)
+				panel.resize(width - (panel.isCylinder ? 1 : 0), height);
 			if (wcscmp(text, L"Dot (Intersection)") == 0)
 				panel.setGridSymbol(x * 2, y * 2, None, NoColor);
 			else if (wcscmp(text, L"Start") == 0) {
@@ -351,6 +354,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			else
 				panel.setSymbol(x, y, None, NoColor);
 			panel.write(panelID);
+			randomizer.symbolsWatchdog->id = static_cast<PanelID>(-1); //Re-initialize panel for symbol checking
 			break;
 
 			//Debug mode checkboxes
@@ -518,8 +522,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		hwndH = CreateWindow(MSFTEDIT_CLASS, L"",
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER,
 			260, 330, 40, 26, hwnd, NULL, hInstance, NULL);
-		SetWindowText(hwndW, L"4");
-		SetWindowText(hwndH, L"4");
+		SetWindowText(hwndW, L"0");
+		SetWindowText(hwndH, L"0");
 
 		CreateWindow(L"STATIC", L"Col/Row:",
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | SS_LEFT,

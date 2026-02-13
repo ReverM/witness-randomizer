@@ -143,6 +143,8 @@ public:
 	bool ScanForBytes(const std::vector<byte>& scanBytes, const ScanFunc& scanFunc);
 	static __int64 ReadStaticInt(__int64 offset, int index, const std::vector<byte>& data, size_t bytesToEOL = 4);
 
+	void LogDebug(const char* fmt, ...);
+
 	int GLOBALS = 0;
 	bool showMsg = false;
 	int globalsTests[3] = {

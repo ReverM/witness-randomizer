@@ -11,7 +11,6 @@
 #include <numeric>
 #include "Random.h"
 #include "Quaternion.h"
-#include "Watchdog.h"
 
 std::vector<PanelID> copyWithoutElements(const std::vector<PanelID>& input, const std::vector<PanelID>& toRemove) {
 	std::vector<PanelID> result;
@@ -50,7 +49,8 @@ void Randomizer::Generate(HWND loadingHandle) {
 
 void Randomizer::StartWatchdogs() {
 	if (watchdogsStarted) return;
-	(new SymbolsWatchdog())->start();
+	symbolsWatchdog = new SymbolsWatchdog();
+	symbolsWatchdog->start();
 	(new TownDoorWatchdog())->start();
 	watchdogsStarted = true;
 }

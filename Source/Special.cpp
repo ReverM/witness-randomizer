@@ -1574,6 +1574,5 @@ bool Special::hasBeenRandomized() {
 //For testing/debugging purposes only
 void Special::test() {
 	g.resetConfig();
-	PanelID id = MILL_DOT_2;
-
+	PanelID id = MILL_STONE_2;
 }
