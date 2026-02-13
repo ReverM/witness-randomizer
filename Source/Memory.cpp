@@ -103,6 +103,7 @@ void Memory::create()
 		_singleton->fixTriangleNegation();
 		_singleton->setupCustomSymbols();
 		_singleton->findActivePanel();
+		_singleton->findPillarLegacyChange();
 	}
 }
 
@@ -123,12 +124,32 @@ void Memory::findActivePanel() {
 	});
 }
 
+void Memory::findPillarLegacyChange() {
+	ScanForBytes({ 0x0F, 0x2F, 0xE3, 0x73, 0x08, 0xF3, 0x0F, 0x59, 0x15}, [this](__int64 offset, int index, const std::vector<byte>& data) {
+		_pillarLegacyChange = offset + index + 3;
+		return true;
+		});
+}
+
 PanelID Memory::GetActivePanel() {
 	return static_cast<PanelID>(_singleton->ReadData<PanelID>(_activePanelOffsets, 1)[0] - 1);
 }
 
 void Memory::invalidateCache() {
 	_computedAddresses = std::map<uintptr_t, uintptr_t>();
+}
+
+void Memory::setPillar() {
+	Memory* memory = Memory::get();
+	if (legacyPillar) {
+		memory->WriteData<byte>({ (int)(_pillarLegacyChange) }, { 0x90, 0x90 });
+		memory->WriteData<byte>({ (int)(_pillarLegacyChange + 10) }, { 0x90, 0x90, 0x90, 0x90, 0x90 });
+	}
+	else {
+		memory->WriteData<byte>({ (int)(_pillarLegacyChange) }, { 0x73, 0x08 });
+		memory->WriteData<byte>({ (int)(_pillarLegacyChange + 10) }, { 0xF3, 0x41, 0x0F, 0x59, 0xD4 });
+	}
+
 }
 
 void Memory::findGlobals() {

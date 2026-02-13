@@ -54,6 +54,8 @@ public:
 	static void create();
 	static Memory* get();
 	void invalidateCache();
+	void setPillar ();
+	bool legacyPillar = false;
 
 	Memory(const Memory& memory) = delete;
 	Memory& operator=(const Memory& other) = delete;
@@ -146,6 +148,7 @@ public:
 	void LogDebug(const char* fmt, ...);
 
 	int GLOBALS = 0;
+
 	bool showMsg = false;
 	int globalsTests[3] = {
 		0x62D0A0, //Steam and Epic Games
@@ -159,6 +162,7 @@ public:
 		void fixTriangleNegation();
 		void setupCustomSymbols();
 		void findActivePanel();
+		void findPillarLegacyChange();
 
 		template<class T>
 		std::vector<T> ReadData(const std::vector<int>& offsets, size_t numItems) {
@@ -208,6 +212,7 @@ public:
 		std::map<uintptr_t, uintptr_t> _computedAddresses;
 		std::vector<int> _activePanelOffsets;
 		std::map<std::pair<int, int>, int> _arraySizes;
+		uint64_t _pillarLegacyChange;
 		uintptr_t _baseAddress = 0;
 		HANDLE _handle = nullptr;
 
